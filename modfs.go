@@ -161,7 +161,9 @@ func (ver *Version) GoMod() ([]byte, error) {
 
 type ZipFS interface {
 	fs.FS
-	io.Closer
+	fs.ReadFileFS
+	// The FS must be closed to free resources.
+	Close() error
 }
 
 // GoMod returns an [fs.FS] with the content of the module.
@@ -233,10 +235,14 @@ func (ver *Version) OpenFS() (ZipFS, error) {
 		return nil, &fs.PathError{Op: "zipread", Path: zipPath, Err: err}
 	}
 
-	return &struct {
+	type ffs = interface {
 		fs.FS
+		fs.ReadFileFS
+	}
+	return &struct {
+		ffs
 		io.Closer
-	}{FS: subfs, Closer: r}, nil
+	}{subfs.(ffs), r}, nil
 }
 
 type closerFunc func() error
