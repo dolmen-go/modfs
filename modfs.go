@@ -14,8 +14,6 @@ import (
 	"os"
 	"strings"
 	"time"
-
-	"github.com/dolmen-go/modfs/zipfs"
 )
 
 type ModFS struct {
@@ -226,10 +224,8 @@ func (ver *Version) OpenFS() (ZipFS, error) {
 		return nil, err
 	}
 
-	zfs := zipfs.NewZipFS(zr)
-
 	// Hide the "module@version/" prefix of all paths in the zip
-	subfs, err := zfs.Sub(ver.module.Path + "@" + ver.Version)
+	subfs, err := fs.Sub(zr, ver.module.Path+"@"+ver.Version)
 	if err != nil {
 		r.Close()
 		return nil, &fs.PathError{Op: "zipread", Path: zipPath, Err: err}
